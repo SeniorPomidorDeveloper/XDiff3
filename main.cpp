@@ -4,6 +4,9 @@
 #include <iomanip>
 #include <string>
 #include <chrono>
+#include <cstdint>
+
+// ==== утилиты ввода/вывода файлов ====
 
 static std::vector<unsigned char> read_file(const std::string& path) {
     std::ifstream f(path, std::ios::binary | std::ios::ate);
@@ -14,6 +17,39 @@ static std::vector<unsigned char> read_file(const std::string& path) {
     if (size > 0) f.read(reinterpret_cast<char*>(buf.data()), size);
     return buf;
 }
+
+static void write_patch(const std::string& filename,
+                        const std::vector<xdiff3::DeltaInstruction>& prog)
+{
+    std::ofstream out(filename, std::ios::binary);
+    if (!out) throw std::runtime_error("Cannot create patch file: " + filename);
+
+    // (необязательно) можно записать магическую сигнатуру и версию формата
+    const char magic[8] = {'X','D','3','P','A','T','C','H'};
+    out.write(magic, sizeof(magic));
+    uint32_t version = 1;
+    out.write(reinterpret_cast<const char*>(&version), sizeof(version));
+
+    for (const auto& ins : prog) {
+        uint8_t op = (ins.type == xdiff3::DeltaInstruction::Copy) ? 0u : 1u;
+        out.write(reinterpret_cast<const char*>(&op), sizeof(op));
+        if (op == 0u) {
+            // COPY: op + offset + length
+            out.write(reinterpret_cast<const char*>(&ins.offset), sizeof(ins.offset));
+            out.write(reinterpret_cast<const char*>(&ins.length), sizeof(ins.length));
+        } else {
+            // INSERT: op + length + data[length]
+            out.write(reinterpret_cast<const char*>(&ins.length), sizeof(ins.length));
+            if (ins.length) {
+                out.write(reinterpret_cast<const char*>(ins.data.data()),
+                          static_cast<std::streamsize>(ins.length));
+            }
+        }
+    }
+    // (необязательно) хвостовая контрольная сумма/размеры могут быть добавлены здесь
+}
+
+// ==== печать статистики (по желанию) ====
 
 static void print_stats(const std::vector<xdiff3::DeltaInstruction>& prog,
                         size_t src_size, size_t tgt_size, double ms, unsigned threads)
@@ -44,15 +80,20 @@ static void print_stats(const std::vector<xdiff3::DeltaInstruction>& prog,
 
 int main(int argc, char** argv) {
     try {
-        if (argc < 3 || argc > 4) {
-            std::cerr << "Usage: " << argv[0] << " <source_file> <target_file> [threads]\n";
+        if (argc < 3 || argc > 5) {
+            std::cerr << "Usage: " << argv[0]
+                      << " <source_file> <target_file> [threads] [patch_out=delta.patch]\n";
             return 2;
         }
         const std::string srcPath = argv[1];
         const std::string tgtPath = argv[2];
+
         unsigned threads = std::thread::hardware_concurrency();
-        if (argc == 4) threads = static_cast<unsigned>(std::stoul(argv[3]));
+        if (argc >= 4) threads = static_cast<unsigned>(std::stoul(argv[3]));
         if (threads == 0) threads = 1;
+
+        std::string patch_out = "delta.patch";
+        if (argc == 5) patch_out = argv[4];
 
         const auto source = read_file(srcPath);
         const auto target = read_file(tgtPath);
@@ -62,7 +103,13 @@ int main(int argc, char** argv) {
         const auto stop  = std::chrono::high_resolution_clock::now();
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
 
+        // записываем результат
+        write_patch(patch_out, program);
+        std::cout << "Patch written: " << patch_out << "\n";
+
+        // печать сводки (опционально, можно убрать)
         print_stats(program, source.size(), target.size(), ms, threads);
+
         return 0;
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
