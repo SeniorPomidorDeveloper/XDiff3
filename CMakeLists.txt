@@ -4,7 +4,7 @@ project(xdiff3_cli CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(xdiff3 STATIC
+add_library(xdiff3 SHARED
     src/xDiff3.cpp
 )
 
