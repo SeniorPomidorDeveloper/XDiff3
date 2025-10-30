@@ -1,25 +1,21 @@
 #pragma once
-#include <vector>
-#include <thread>
-#include <unordered_map>
 #include <cstddef>
+#include <cstdint>
+#include <vector>
 
 namespace xdiff3 {
 
 struct DeltaInstruction {
     enum Type { Copy, Insert } type;
-    size_t offset;                   // для Copy: смещение в source; для Insert — 0
-    size_t length;                   // длина сегмента
-    std::vector<unsigned char> data; // для Insert; для Copy — пусто
+    std::size_t offset;
+    std::size_t length;
+    std::vector<unsigned char> data;
 };
 
-using ByteVec = std::vector<unsigned char>;
-
-// Параллельный дельта-алгоритм (keyLen=4, индекс по 4-байтовым ключам).
-// Возвращает поток инструкций COPY/INSERT, чтобы восстановить target из source.
+// Основное API: именно это вызывает твой main.cpp
 std::vector<DeltaInstruction> diffParallel(
-    const ByteVec& source,
-    const ByteVec& target,
-    unsigned numThreads = std::thread::hardware_concurrency());
+    const std::vector<unsigned char>& source,
+    const std::vector<unsigned char>& target,
+    unsigned numThreads);
 
 } // namespace xdiff3

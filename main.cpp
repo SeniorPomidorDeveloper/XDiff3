@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <string>
 #include <chrono>
+#include <thread>
 #include <cstdint>
 
 // ==== утилиты ввода/вывода файлов ====
