@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <utility>
 #include <thread>
+#include <iostream>
 
 namespace xdiff3 {
 
@@ -110,6 +111,10 @@ std::vector<DeltaInstruction> diffParallel(
     const ByteVec& target,
     unsigned numThreads)
 {
+    if (numThreads >= source.size() / 4) {
+        numThreads = static_cast<unsigned>(source.size() / 4);
+        if (numThreads == 0) numThreads = 1;
+    }
     if (target.size() < 4 || numThreads < 2) {
         std::vector<DeltaInstruction> trivial(1);
         trivial[0].type = DeltaInstruction::Insert;
