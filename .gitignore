@@ -3,3 +3,7 @@ build
 __pycache__
 .venv
 uv.lock
+.github
+*.png
+*.csv
+docs

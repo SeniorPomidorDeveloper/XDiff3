@@ -28,11 +28,7 @@ def env_list(name, cast, default):
     return [cast(x) for x in txt.replace(",", " ").split() if x.strip()]
 
 def main():
-<<<<<<< HEAD
     LIB_PATH = os.getenv("LIB_PATH", "../build/libxdiff3_bench.so")
-=======
-    LIB_PATH = os.getenv("LIB_PATH", "../build/libxdiff3.so")
->>>>>>> 4b06621800aef0ce4747503dcd605fe73896efc6
     DATA_DIR = os.getenv("DATA_DIR", "./data")
     THREADS  = env_list("THREADS_LIST", int, list(range(1, 41)))
     ATTEMPTS = int(os.getenv("ATTEMPTS", "5"))

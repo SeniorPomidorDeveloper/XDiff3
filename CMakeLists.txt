@@ -4,16 +4,10 @@ project(xdiff3_cli CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-<<<<<<< HEAD
 # основная динамическая либа
 add_library(xdiff3 SHARED src/xDiff3.cpp)
 target_include_directories(xdiff3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set_target_properties(xdiff3 PROPERTIES OUTPUT_NAME xdiff3)
-=======
-add_library(xdiff3 SHARED
-    src/xDiff3.cpp
-)
->>>>>>> 4b06621800aef0ce4747503dcd605fe73896efc6
 
 # bench-обёртка для графиков (ctypes)
 add_library(xdiff3_bench SHARED bench/bench.cpp)
