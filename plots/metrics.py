@@ -9,6 +9,12 @@ def aggregate(times_dict):
     E  = {p: (S[p]/p)*100.0 for p in th}
     return med_t, S, E
 
+def calc_time_error(times_dict):
+    """Стандартное отклонение времени по потокам для набора замеров."""
+    th = sorted(times_dict.keys())
+    std_t = {p: float(np.std(times_dict[p], ddof=1)) for p in th}
+    return std_t
+
 def gustafson_barsis(threads, similarities):
     out = {}
     for s in similarities:
